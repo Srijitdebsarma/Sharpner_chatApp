@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+</head>
+<body>
+    <h1>Send a Message</h1>
+    <form id="messageForm">
+        <label for="message">Message:</label>
+        <input type="text" id="message" name="message" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <h2>Messages</h2>
+    <ul id="messagesList"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                window.location.href = '/login';
+            }
+            
+            document.getElementById('messageForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const message = document.getElementById('message').value;
+                await fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, message })
+                });
+                document.getElementById('message').value = '';
+                loadMessages();
+            });
+
+            async function loadMessages() {
+                const response = await fetch('/messages');
+                const messages = await response.json();
+                const messagesList = document.getElementById('messagesList');
+                messagesList.innerHTML = '';
+                messages.forEach(msg => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${msg.username}: ${msg.message}`;
+                    messagesList.appendChild(listItem);
+                });
+            }
+
+            loadMessages();
+        });
+    </script>
+</body>
+</html>
